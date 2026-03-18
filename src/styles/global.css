@@ -516,7 +516,98 @@ img { display: block; max-width: 100%; }
   .grid-2, .grid-3, .grid-4 { grid-template-columns:1fr; }
   .container { padding:0 var(--sp-4); }
   .hide-mobile { display:none !important; }
+
+  /* Rider dashboard — stack form above map */
+  .rider-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Page header spacing */
+  .page-header { margin-bottom: var(--sp-5); }
+  .page-main   { padding: var(--sp-5) 0; }
+
+  /* Headings smaller on mobile */
+  .heading-1  { font-size: 1.375rem; }
+  .heading-2  { font-size: 1.125rem; }
+  .display-xl { font-size: 2rem; }
+  .display-lg { font-size: 1.625rem; }
+
+  /* Stat cards — 2 columns on mobile */
+  .grid-3.stagger { grid-template-columns: 1fr 1fr; }
+
+  /* Buttons full width on mobile */
+  .btn-xl { padding: var(--sp-4) var(--sp-6); font-size: 1rem; }
+
+  /* Map height smaller on mobile */
+  .map-container { height: 280px !important; }
+
+  /* Cards padding smaller */
+  .card { padding: var(--sp-4); }
+
+  /* Data table — scroll horizontally */
+  .card[style*="overflow"] { overflow-x: auto !important; }
+  .data-table { min-width: 500px; }
+
+  /* Driver dashboard pending ride cards */
+  .anim-slide { font-size: 0.875rem; }
+
+  /* Toast — full width on mobile */
+  .alert { font-size: 0.8125rem; }
 }
+
+@media (max-width: 480px) {
+  /* Very small phones */
+  .grid-3.stagger { grid-template-columns: 1fr; }
+  .stat-value { font-size: 1.5rem; }
+  .heading-1 { font-size: 1.25rem; }
+}
+
 @media (min-width: 769px) {
   .hide-desktop { display:none !important; }
+}
+
+/* ── Rider dashboard responsive ─────────────────────────────────── */
+.rider-grid {
+  grid-template-columns: minmax(0,2fr) minmax(0,3fr);
+}
+
+@media (max-width: 768px) {
+  .rider-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Fare card text fix on mobile */
+  .fare-value {
+    font-size: 1.25rem !important;
+  }
+
+  /* Stat cards 2 col on mobile */
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Page padding tighter on mobile */
+  .page-main {
+    padding: var(--sp-5) 0;
+  }
+
+  /* Heading size on mobile */
+  .heading-1 {
+    font-size: 1.375rem;
+  }
+
+  /* Map height smaller on mobile */
+  .map-container {
+    height: 280px !important;
+  }
+}
+
+/* Stat cards — 4 col desktop, 2 col mobile */
+@media (min-width: 769px) {
+  .stat-cards-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+  }
 }

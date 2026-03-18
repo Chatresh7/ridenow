@@ -226,7 +226,15 @@ export function RiderDashboard() {
             <p style={{ color:'var(--neutral-500)' }}>Where are you headed today?</p>
           </div>
 
-          <div style={{ display:'grid', gridTemplateColumns:'minmax(0,2fr) minmax(0,3fr)', gap:'var(--sp-6)', alignItems:'start' }}>
+          {/* Responsive grid — side by side on desktop, stacked on mobile */}
+          <div style={{
+            display:'grid',
+            gridTemplateColumns:'minmax(0,2fr) minmax(0,3fr)',
+            gap:'var(--sp-6)',
+            alignItems:'start',
+          }}
+          className="rider-grid"
+          >
             {/* Left panel */}
             <div style={{ display:'flex', flexDirection:'column', gap:'var(--sp-4)' }}>
               {rideLoading ? (
@@ -379,20 +387,25 @@ function RideRequestForm({ userId, onRequested }) {
         borderRadius:'var(--r-md)', padding:'var(--sp-4)',
         border:'1px solid rgba(124,58,237,0.3)',
         display:'flex', justifyContent:'space-between', alignItems:'center',
+        gap:'var(--sp-3)', overflow:'hidden',
       }}>
-        <div>
+        <div style={{ minWidth:0 }}>
           <div style={{ color:'rgba(255,255,255,0.5)', fontSize:'0.7rem', textTransform:'uppercase', letterSpacing:'0.05em', fontWeight:600 }}>
             Distance
           </div>
-          <div style={{ fontFamily:'var(--font-head)', fontWeight:700, fontSize:'1.25rem', color:'white' }}>
+          <div style={{ fontFamily:'var(--font-head)', fontWeight:700, fontSize:'1.125rem', color:'white' }}>
             {dist.toFixed(1)} km
           </div>
         </div>
-        <div style={{ textAlign:'right' }}>
+        <div style={{ textAlign:'right', minWidth:0 }}>
           <div style={{ color:'rgba(255,255,255,0.5)', fontSize:'0.7rem', textTransform:'uppercase', letterSpacing:'0.05em', fontWeight:600 }}>
             Fare estimate
           </div>
-          <div style={{ fontFamily:'var(--font-head)', fontWeight:800, fontSize:'1.75rem' }} className="gold-text">
+          <div style={{
+            fontFamily:'var(--font-head)', fontWeight:800,
+            fontSize:'clamp(1.1rem, 4vw, 1.75rem)',
+            color:'#FFD700', wordBreak:'break-all',
+          }}>
             ₹{fare}
           </div>
         </div>
@@ -636,7 +649,7 @@ function PurpleMap({ activeRide, driverLocation }) {
 
       {/* ── STAT CARDS ────────────────────────────────────────────── */}
       {activeRide && (
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:'var(--sp-3)' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:'var(--sp-3)' }} className="stat-cards-grid">
 
           {/* Arrival time — replaces old "ETA" label */}
           <MapStatCard
@@ -707,7 +720,7 @@ function PurpleMap({ activeRide, driverLocation }) {
       )}
 
       {/* ── MAP CANVAS ───────────────────────────────────────────── */}
-      <div className="map-container" style={{ height: MAP_H, position:'relative' }}>
+      <div className="map-container" style={{ height: typeof window !== 'undefined' && window.innerWidth < 768 ? 260 : MAP_H, position:'relative' }}>
         <div className="map-grid" />
 
         {/* Roads */}
