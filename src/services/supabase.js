@@ -8,7 +8,13 @@ import { createClient } from '@supabase/supabase-js'
 const SUPABASE_URL     = import.meta.env.VITE_SUPABASE_URL     || 'https://YOUR_PROJECT.supabase.co'
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'YOUR_ANON_KEY'
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  realtime: {
+    params: {
+      eventsPerSecond: 2,  // limit events to reduce rate limit hits
+    }
+  }
+})
 
 // ── AUTH ──────────────────────────────────────────────────────────
 export const authService = {
@@ -201,35 +207,53 @@ export const earningsService = {
 
 // ── RATINGS ───────────────────────────────────────────────────────
 export const ratingService = {
-  submit: async (rideId, raterId, driverId, score, comment) => {
-    // 1. Insert the rating record
-    const { error } = await supabase.from('ratings').insert({
-      ride_id: rideId,
+  submit: async (rideId, raterId, driverTableId, score, comment) => {
+    // driverTableId = drivers.id (the UUID from rides.driver_id)
+    // Step 1: Get driver's user_id from drivers table
+    const { data: driver, error: driverErr } = await supabase
+      .from('drivers')
+      .select('user_id')
+      .eq('id', driverTableId)
+      .single()
+
+    if (driverErr || !driver) {
+      console.error('Could not find driver:', driverErr)
+      throw new Error('Driver not found')
+    }
+
+    const driverUserId = driver.user_id
+
+    // Step 2: Insert rating using driver's user_id as ratee_id
+    const { error: ratingErr } = await supabase.from('ratings').insert({
+      ride_id:  rideId,
       rater_id: raterId,
-      ratee_id: driverId,
+      ratee_id: driverUserId,
       score,
-      comment,
+      comment: comment || null,
     })
-    if (error) throw error
 
-    // 2. Fetch ALL existing ratings for this driver (including the one just inserted)
-    // Small delay to ensure the insert is visible
-    await new Promise(r => setTimeout(r, 300))
+    if (ratingErr) {
+      // Ignore duplicate rating error
+      if (!ratingErr.code?.includes('23505')) {
+        console.error('Rating insert error:', ratingErr)
+        throw ratingErr
+      }
+    }
 
+    // Step 3: Recalculate avg rating
+    await new Promise(r => setTimeout(r, 500))
     const { data: allRatings } = await supabase
       .from('ratings')
       .select('score')
-      .eq('ratee_id', driverId)
+      .eq('ratee_id', driverUserId)
 
     if (allRatings && allRatings.length > 0) {
-      const total  = allRatings.reduce((sum, r) => sum + Number(r.score), 0)
-      const avg    = total / allRatings.length
-      const rounded = Math.round(avg * 10) / 10  // e.g. 3.7
-
+      const avg     = allRatings.reduce((s, r) => s + Number(r.score), 0) / allRatings.length
+      const rounded = Math.round(avg * 10) / 10
       await supabase
         .from('drivers')
         .update({ rating_avg: rounded })
-        .eq('user_id', driverId)
+        .eq('user_id', driverUserId)
     }
 
     return { success: true }

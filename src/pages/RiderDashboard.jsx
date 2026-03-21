@@ -186,7 +186,7 @@ export function RiderDashboard() {
         if (data.status === 'in_progress') showToast('🏁 Ride started!', 'info')
         if (data.status === 'completed')   { showToast('✅ Trip completed!', 'success'); setShowRating(true) }
       }
-    }, 4000)
+    }, 8000)
 
     return () => { unsub(); clearInterval(poll) }
   }, [activeRide?.id, activeRide?.status])
@@ -1029,37 +1029,17 @@ function RatingModal({ ride, userId, onClose }) {
   const [done, setDone]       = useState(false)
   const [error, setError]     = useState('')
 
-  // Priority chain for driver's user_id:
-  // 1. ride.drivers.user_id  → best, from joined query
-  // 2. Look it up from DB if missing
-  const [driverUserId, setDriverUserId] = useState(null)
-
-  useEffect(() => {
-    // If we already have user_id from the join, use it directly
-    if (ride.drivers?.user_id) {
-      setDriverUserId(ride.drivers.user_id)
+  const submit = async () => {
+    if (!ride.driver_id) {
+      setError('Driver info missing. Please try again.')
       return
     }
-    // ride.driver_id is drivers table UUID — look up the user_id
-    if (ride.driver_id) {
-      supabase
-        .from('drivers')
-        .select('user_id')
-        .eq('id', ride.driver_id)
-        .single()
-        .then(({ data }) => {
-          if (data?.user_id) setDriverUserId(data.user_id)
-          else setError('Could not find driver details.')
-        })
-    }
-  }, [ride.driver_id, ride.drivers?.user_id])
-
-  const submit = async () => {
-    if (!driverUserId) { setError('Driver info missing. Please try again.'); return }
     setLoading(true)
     setError('')
     try {
-      await ratingService.submit(ride.id, userId, driverUserId, score, comment)
+      // Pass ride.driver_id (drivers table UUID)
+      // ratingService.submit internally resolves the user_id
+      await ratingService.submit(ride.id, userId, ride.driver_id, score, comment)
       setDone(true)
       setTimeout(onClose, 2000)
     } catch (err) {

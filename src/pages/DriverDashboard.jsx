@@ -111,7 +111,7 @@ export function DriverDashboard() {
       }
     }
     send()
-    locationTimerRef.current = setInterval(send, 5000)
+    locationTimerRef.current = setInterval(send, 10000)
   }
   const stopBroadcast = () => { clearInterval(locationTimerRef.current); locationTimerRef.current=null }
 
